@@ -1,0 +1,504 @@
+import React, { useState } from 'react';
+import { useSpring, animated } from 'react-spring';
+
+// Define standard body metrics based on the provided table
+const standardMetrics = {
+  male: {
+    bmi: 22,
+    fat: 17,
+    visceralFat: 6,
+    muscle: 37,
+  },
+  femaleYoung: { // Assuming "Nữ Trẻ" is young female
+    bmi: 20,
+    fat: 22,
+    visceralFat: 4,
+    muscle: 28,
+  },
+  femaleOld: { // Assuming "Nữ Lớn tuổi" is older female
+    bmi: 22,
+    fat: 24,
+    visceralFat: 6,
+    muscle: 28,
+  },
+};
+
+// SVG for up arrow icon
+const UpArrowIcon = ({ color }) => (
+  <svg xmlns="http://www.w3.org/2d00/svg" className={`h-4 w-4 inline-block ml-1 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+  </svg>
+);
+
+// SVG for down arrow icon
+const DownArrowIcon = ({ color }) => (
+  <svg xmlns="http://www.w3.org/2d00/svg" className={`h-4 w-4 inline-block ml-1 ${color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+  </svg>
+);
+
+// Main component for the SMARTFIT analysis application
+const App = () => {
+  // State variables for form inputs
+  const [menteeName, setMenteeName] = useState('');
+  const [mentorName, setMentorName] = useState('');
+  const [age, setAge] = useState('');
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [fatPercentage, setFatPercentage] = useState('');
+  const [fatMass, setFatMass] = useState('');
+  const [visceralFat, setVisceralFat] = useState('');
+  const [musclePercentage, setMusclePercentage] = useState('');
+  const [bodyAge, setBodyAge] = useState('');
+  const [bmiInput, setBmiInput] = useState('');
+  const [bmrInput, setBmrInput] = useState('');
+  const [gender, setGender] = useState('male');
+
+  // State variables for calculated results
+  const [targetWeightCalculated, setTargetWeightCalculated] = useState(null);
+  const [weightChange, setWeightChange] = useState(null);
+  const [bmiDiff, setBmiDiff] = useState(null);
+  const [fatDiff, setFatDiff] = useState(null);
+  const [visceralFatDiff, setVisceralFatDiff] = useState(null);
+  const [muscleDiff, setMuscleDiff] = useState(null);
+  const [bodyAgeDiff, setBodyAgeDiff] = useState(null);
+  // New state variables for diet plan calculations
+  const [dailyKcal500, setDailyKcal500] = useState(null);
+  const [dailyKcal1000, setDailyKcal1000] = useState(null);
+  const [totalProteinGrams, setTotalProteinGrams] = useState(null);
+  const [proteinScoops, setProteinScoops] = useState(null);
+  const [proteinScoopsAfterBodykey, setProteinScoopsAfterBodykey] = useState(null);
+
+
+  // State to track if results should be displayed
+  const [showResults, setShowResults] = useState(false);
+
+  // Spring animation for the results card
+  const springProps = useSpring({
+    opacity: showResults ? 1 : 0,
+    transform: showResults ? 'translateY(0px)' : 'translateY(20px)',
+    config: { tension: 200, friction: 20 }
+  });
+
+  // Handle form submission and calculations
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Determine the standard metric set based on gender and age
+    let standards = standardMetrics.male;
+    if (gender === 'female') {
+      standards = parseInt(age, 10) >= 40 ? standardMetrics.femaleOld : standardMetrics.femaleYoung;
+    }
+    
+    // Calculate the target weight based on the standard BMI and height
+    if (height) {
+      const heightInMeters = parseFloat(height) / 100;
+      const calculatedTargetWeight = standards.bmi * heightInMeters * heightInMeters;
+      setTargetWeightCalculated(calculatedTargetWeight.toFixed(1));
+      
+      // Calculate weight change compared to the calculated target
+      if (weight) {
+        setWeightChange((parseFloat(weight) - calculatedTargetWeight).toFixed(1));
+      }
+    } else {
+      setTargetWeightCalculated(null);
+      setWeightChange(null);
+    }
+    
+    // Calculate differences for other metrics
+    if (bmiInput) setBmiDiff(parseFloat(bmiInput) - standards.bmi);
+    if (fatPercentage) setFatDiff(parseFloat(fatPercentage) - standards.fat);
+    if (visceralFat) setVisceralFatDiff(parseFloat(visceralFat) - standards.visceralFat);
+    if (musclePercentage) setMuscleDiff(standards.muscle - parseFloat(musclePercentage));
+    if (bodyAge && age) setBodyAgeDiff(parseInt(bodyAge, 10) - parseInt(age, 10));
+
+    // Calculate diet plan and protein metrics
+    if (bmrInput && weight) {
+      // Calorie plans
+      const plan500 = parseFloat(bmrInput) + 200;
+      const plan1000 = parseFloat(bmrInput) - 300;
+      setDailyKcal500(plan500.toFixed(0));
+      setDailyKcal1000(plan1000.toFixed(0));
+
+      // Protein calculations
+      const totalProtein = parseFloat(weight) * 1.2;
+      const totalScoops = totalProtein / 8;
+      setTotalProteinGrams(totalProtein.toFixed(1));
+      setProteinScoops(totalScoops.toFixed(1));
+
+      // Scoops needed after Bodykey
+      const proteinFromBodykey = 2 * 17; // 2 packets, 17g protein per packet
+      const remainingProtein = totalProtein - proteinFromBodykey;
+      const remainingScoops = remainingProtein / 8;
+      setProteinScoopsAfterBodykey(remainingScoops.toFixed(1));
+    } else {
+        setDailyKcal500(null);
+        setDailyKcal1000(null);
+        setTotalProteinGrams(null);
+        setProteinScoops(null);
+        setProteinScoopsAfterBodykey(null);
+    }
+
+
+    // Show the results section
+    setShowResults(true);
+  };
+  
+  // Helper function to format the difference text and icon
+  const formatDiff = (diff, unit, inverse = false) => {
+    if (diff === null || isNaN(diff)) return 'N/A';
+    const absDiff = Math.abs(diff);
+    let text, icon;
+
+    if (inverse) {
+      if (diff > 0) {
+        text = `Cần tăng ${absDiff.toFixed(1)} ${unit}`;
+        icon = <UpArrowIcon color="text-green-600" />;
+      } else if (diff < 0) {
+        text = `Đã tăng ${absDiff.toFixed(1)} ${unit}`;
+        icon = <DownArrowIcon color="text-red-600" />;
+      }
+    } else {
+      if (diff > 0) {
+        text = `Cần giảm ${absDiff.toFixed(1)} ${unit}`;
+        icon = <DownArrowIcon color="text-red-600" />;
+      } else if (diff < 0) {
+        text = `Cần tăng ${absDiff.toFixed(1)} ${unit}`;
+        icon = <UpArrowIcon color="text-green-600" />;
+      }
+    }
+    
+    if (diff === 0) {
+      return <span className="text-gray-500">Đạt chuẩn</span>;
+    }
+
+    return (
+      <span className="font-semibold flex items-center justify-end">
+        {text}
+        {icon}
+      </span>
+    );
+  };
+
+  // Helper function to format the body age text and icon
+  const formatBodyAge = () => {
+    if (bodyAgeDiff === null || isNaN(bodyAgeDiff)) return 'N/A';
+    if (bodyAgeDiff <= 0) {
+      return <span className="text-green-600 font-semibold">Đạt chuẩn</span>;
+    }
+    return (
+      <span className="text-red-600 font-semibold flex items-center justify-end">
+        Cần giảm {bodyAgeDiff} tuổi
+        <DownArrowIcon color="text-red-600" />
+      </span>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans antialiased text-gray-800">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 space-y-8 border border-gray-200">
+        {/* Application Title */}
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+            Bảng Phân tích SMARTFIT
+          </h1>
+          <p className="mt-2 text-md text-gray-600">
+            Ứng dụng tính toán và thống kê chỉ số cơ thể
+          </p>
+        </div>
+        
+        {/* Form for data input */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Mentee & Mentor */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="menteeName" className="block text-sm font-medium text-gray-700 mb-1">
+                Tên Mentee
+              </label>
+              <input
+                id="menteeName"
+                type="text"
+                value={menteeName}
+                onChange={(e) => setMenteeName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all shadow-sm"
+                placeholder="Nhập tên Mentee"
+              />
+            </div>
+            <div>
+              <label htmlFor="mentorName" className="block text-sm font-medium text-gray-700 mb-1">
+                Tên Mentor
+              </label>
+              <input
+                id="mentorName"
+                type="text"
+                value={mentorName}
+                onChange={(e) => setMentorName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all shadow-sm"
+                placeholder="Nhập tên Mentor"
+              />
+            </div>
+          </div>
+
+          {/* Hàng 1: Tuổi, Chiều cao, Cân nặng */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">Tuổi</label>
+              <input id="age" type="number" value={age} onChange={(e) => setAge(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Tuổi" />
+            </div>
+            <div>
+              <label htmlFor="height" className="block text-sm font-medium text-gray-700 mb-1">Chiều cao (cm)</label>
+              <input id="height" type="number" value={height} onChange={(e) => setHeight(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Chiều cao" required />
+            </div>
+            <div>
+              <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">Cân nặng (kg)</label>
+              <input id="weight" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Cân nặng" required />
+            </div>
+          </div>
+          
+          {/* Hàng 2: Tỉ lệ mỡ, Khối lượng mỡ, Mỡ nội tạng */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label htmlFor="fatPercentage" className="block text-sm font-medium text-gray-700 mb-1">Tỉ lệ mỡ (%)</label>
+              <input id="fatPercentage" type="number" value={fatPercentage} onChange={(e) => setFatPercentage(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Tỉ lệ mỡ" />
+            </div>
+            <div>
+              <label htmlFor="fatMass" className="block text-sm font-medium text-gray-700 mb-1">Khối lượng mỡ (kg)</label>
+              <input id="fatMass" type="number" value={fatMass} onChange={(e) => setFatMass(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Khối lượng mỡ" />
+            </div>
+            <div>
+              <label htmlFor="visceralFat" className="block text-sm font-medium text-gray-700 mb-1">Mỡ nội tạng (%)</label>
+              <input id="visceralFat" type="number" value={visceralFat} onChange={(e) => setVisceralFat(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Mỡ nội tạng" />
+            </div>
+          </div>
+
+          {/* Hàng 3: Tỉ lệ cơ, Tuổi sinh học, BMR, BMI */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <label htmlFor="musclePercentage" className="block text-sm font-medium text-gray-700 mb-1">Tỉ lệ cơ (%)</label>
+              <input id="musclePercentage" type="number" value={musclePercentage} onChange={(e) => setMusclePercentage(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Tỉ lệ cơ" />
+            </div>
+            <div>
+              <label htmlFor="bodyAge" className="block text-sm font-medium text-gray-700 mb-1">Tuổi sinh học</label>
+              <input id="bodyAge" type="number" value={bodyAge} onChange={(e) => setBodyAge(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm" placeholder="Tuổi sinh học" />
+            </div>
+            <div>
+              <label htmlFor="bmrInput" className="block text-sm font-medium text-gray-700 mb-1">
+                BMR (kcal/ngày)
+              </label>
+              <input
+                id="bmrInput"
+                type="number"
+                value={bmrInput}
+                onChange={(e) => setBmrInput(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                placeholder="Nhập BMR"
+              />
+            </div>
+            <div>
+              <label htmlFor="bmiInput" className="block text-sm font-medium text-gray-700 mb-1">
+                BMI
+              </label>
+              <input
+                id="bmiInput"
+                type="number"
+                value={bmiInput}
+                onChange={(e) => setBmiInput(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                placeholder="Nhập BMI"
+              />
+            </div>
+          </div>
+          
+          {/* Giới tính */}
+          <div>
+            <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+            <select id="gender" value={gender} onChange={(e) => setGender(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+              <option value="male">Nam</option>
+              <option value="female">Nữ</option>
+            </select>
+          </div>
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            className="w-full py-3 px-6 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition-all transform hover:scale-105"
+          >
+            Xem kết quả
+          </button>
+        </form>
+
+        {/* Display results after calculation */}
+        {showResults && (
+          <animated.div style={springProps} className="mt-8">
+            <div className="border border-gray-300 rounded-lg p-6 shadow-md bg-gray-50 space-y-4">
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
+                Kết quả Phân tích
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex justify-between items-center bg-white p-4 rounded-md shadow-sm">
+                  <span className="font-semibold text-gray-700">Tên Mentee:</span>
+                  <span className="text-lg font-medium text-gray-900">{menteeName}</span>
+                </div>
+                <div className="flex justify-between items-center bg-white p-4 rounded-md shadow-sm">
+                  <span className="font-semibold text-gray-700">Tên Mentor:</span>
+                  <span className="text-lg font-medium text-gray-900">{mentorName}</span>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">Các Chỉ số Chuẩn</h3>
+                <div className="overflow-x-auto rounded-lg">
+                  <table className="min-w-full bg-white shadow-sm border border-gray-200">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Chỉ số</th>
+                        <th className="py-2 px-4 text-center text-sm font-semibold text-gray-600">Nam</th>
+                        <th className="py-2 px-4 text-center text-sm font-semibold text-gray-600">Nữ Trẻ</th>
+                        <th className="py-2 px-4 text-center text-sm font-semibold text-gray-600">Nữ Lớn tuổi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-gray-700 font-medium">BMI</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">22</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">20</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">22</td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-gray-700 font-medium">Tỉ lệ Mỡ (%)</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">17</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">22</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">24</td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-gray-700 font-medium">Mỡ Nội tạng (%)</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">6</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">4</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">6</td>
+                      </tr>
+                      <tr className="hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-gray-700 font-medium">Tỉ lệ Cơ (%)</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">37</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">28</td>
+                        <td className="py-3 px-4 text-center text-sm text-purple-600 font-bold">28</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+
+              {/* Display the calculated metrics with target comparison */}
+              <div className="mt-6 space-y-4">
+                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                  <div className="text-sm text-gray-500 sm:w-1/3">Cân nặng hiện tại</div>
+                  <div className="text-2xl font-bold text-purple-600 mt-1 sm:mt-0 sm:w-1/3 text-center">{weight || 'N/A'} kg</div>
+                  <div className="text-sm mt-1 sm:mt-0 sm:w-1/3 text-right">
+                     {targetWeightCalculated !== null && weightChange !== null ? (
+                      weightChange > 0 ? (
+                        <span className="font-semibold flex items-center justify-end text-red-600">
+                           Cần giảm {Math.abs(weightChange)} kg
+                           <DownArrowIcon color="text-red-600" />
+                        </span>
+                      ) : weightChange < 0 ? (
+                        <span className="font-semibold flex items-center justify-end text-green-600">
+                          Cần tăng {Math.abs(weightChange)} kg
+                          <UpArrowIcon color="text-green-600" />
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">Đã đạt mục tiêu</span>
+                      )
+                    ) : 'N/A'}
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                  <div className="text-sm text-gray-500 sm:w-1/3">BMI</div>
+                  <div className="text-2xl font-bold text-purple-600 mt-1 sm:mt-0 sm:w-1/3 text-center">{bmiInput || 'N/A'}</div>
+                  <div className="text-sm mt-1 sm:mt-0 sm:w-1/3 text-right">
+                    {formatDiff(bmiDiff, '')}
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                  <div className="text-sm text-gray-500 sm:w-1/3">Tỉ lệ mỡ (%)</div>
+                  <div className="text-2xl font-bold text-purple-600 mt-1 sm:mt-0 sm:w-1/3 text-center">{fatPercentage || 'N/A'}%</div>
+                  <div className="text-sm mt-1 sm:mt-0 sm:w-1/3 text-right">
+                    {formatDiff(fatDiff, '%')}
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                  <div className="text-sm text-gray-500 sm:w-1/3">Mỡ nội tạng</div>
+                  <div className="text-2xl font-bold text-purple-600 mt-1 sm:mt-0 sm:w-1/3 text-center">{visceralFat || 'N/A'}%</div>
+                  <div className="text-sm mt-1 sm:mt-0 sm:w-1/3 text-right">
+                    {formatDiff(visceralFatDiff, '')}
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                  <div className="text-sm text-gray-500 sm:w-1/3">Tỉ lệ cơ (%)</div>
+                  <div className="text-2xl font-bold text-purple-600 mt-1 sm:mt-0 sm:w-1/3 text-center">{musclePercentage || 'N/A'}%</div>
+                  <div className="text-sm mt-1 sm:mt-0 sm:w-1/3 text-right">
+                    {formatDiff(muscleDiff, '%', true)}
+                  </div>
+                </div>
+
+                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                  <div className="text-sm text-gray-500 sm:w-1/3">Tuổi sinh học</div>
+                  <div className="text-2xl font-bold text-purple-600 mt-1 sm:mt-0 sm:w-1/3 text-center">{bodyAge || 'N/A'} tuổi</div>
+                  <div className="text-sm mt-1 sm:mt-0 sm:w-1/3 text-right">
+                    {formatBodyAge()}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Kế hoạch Dinh dưỡng */}
+              <div className="mt-8 pt-4 border-t border-gray-200 space-y-4">
+                <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">Kế hoạch Dinh dưỡng</h3>
+                <p className="text-sm text-gray-500 text-center mb-4">
+                  (Dựa trên BMR và Cân nặng bạn đã nhập)
+                </p>
+                {dailyKcal500 !== null && dailyKcal1000 !== null ? (
+                  <>
+                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                      <div className="text-sm text-gray-500">Giảm 500g/tuần</div>
+                      <div className="text-2xl font-bold text-purple-600">{dailyKcal500} kcal/ngày</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                      <div className="text-sm text-gray-500">Giảm 1000g/tuần</div>
+                      <div className="text-2xl font-bold text-purple-600">{dailyKcal1000} kcal/ngày</div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-gray-500 text-center">Vui lòng nhập BMR và Cân nặng để xem kế hoạch dinh dưỡng.</p>
+                )}
+
+                {totalProteinGrams !== null && proteinScoops !== null ? (
+                  <>
+                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                      <div className="text-sm text-gray-500">Tổng Protein cần nạp</div>
+                      <div className="text-2xl font-bold text-purple-600">{totalProteinGrams} g/ngày</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                      <div className="text-sm text-gray-500">Số muỗng Protein tổng cộng</div>
+                      <div className="text-2xl font-bold text-purple-600">{proteinScoops} muỗng</div>
+                    </div>
+                     <div className="bg-white p-4 rounded-md shadow-sm flex flex-col sm:flex-row justify-between items-center">
+                      <div className="text-sm text-gray-500">Số muỗng Protein còn lại</div>
+                      <div className="text-xs text-gray-500">(Đã trừ 2 gói Bodykey)</div>
+                      <div className="text-2xl font-bold text-purple-600">{proteinScoopsAfterBodykey} muỗng</div>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          </animated.div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default App;
