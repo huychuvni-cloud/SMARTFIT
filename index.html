@@ -284,9 +284,16 @@
                     (Phần calo còn thiếu cho bữa trưa sẽ được bổ sung từ thực phẩm hấp, luộc hoặc tươi sống.)
                 </p>
             </div>
+            
+            <div class="flex justify-center mt-4">
+                <button id="saveButton" class="w-full sm:w-auto px-8 py-3 bg-custom-green-500 text-white font-semibold rounded-md shadow-lg hover:bg-custom-green-600 focus:outline-none focus:ring-4 focus:ring-custom-green-500 focus:ring-opacity-50 transition duration-200">
+                    Lưu kết quả
+                </button>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('analysisForm');
@@ -407,9 +414,11 @@
                 
                 const lunchProteinGrams = totalProteinGrams - (2 * bodykeyProteinPerPacket);
                 const lunchProteinScoops = (lunchProteinGrams / proteinPerScoop);
-                const lunchProteinKcal = lunchProteinScoops * proteinKcalPerScoop;
                 
-                const lunchKcalFromFood = dailyKcalGoal - breakfastKcal - dinnerKcal - lunchProteinKcal;
+                // Fix: Calculate lunchKcalFromFood correctly
+                const totalKcalFromSupplements = breakfastKcal + dinnerKcal + (lunchProteinScoops * proteinKcalPerScoop);
+                const lunchKcalFromFood = dailyKcalGoal - totalKcalFromSupplements;
+
 
                 // Display results
                 document.getElementById('menteeResult').textContent = menteeName;
@@ -438,10 +447,27 @@
                 document.getElementById('dailyKcalGoalResult').textContent = isNaN(dailyKcalGoal) ? 'N/A' : `${dailyKcalGoal.toFixed(0)} kcal`;
                 document.getElementById('lunchKcalResult').textContent = isNaN(lunchKcalFromFood) ? 'N/A' : `${lunchKcalFromFood.toFixed(0)} kcal`;
                 document.getElementById('lunchProteinScoopsResult').textContent = isNaN(lunchProteinScoops) ? 'N/A' : `${lunchProteinScoops.toFixed(1)} muỗng`;
-
+                
                 resultsContainer.classList.remove('hidden');
                 resultsContainer.scrollIntoView({ behavior: 'smooth' });
             });
+            
+            // Save button logic
+            const saveResultAsImage = () => {
+                const elementToSave = document.getElementById('resultsContainer');
+                html2canvas(elementToSave).then(canvas => {
+                    const menteeName = document.getElementById('menteeName').value || 'Ket_qua_phan_tich';
+                    const link = document.createElement('a');
+                    link.download = `${menteeName}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            };
+
+            const saveButton = document.getElementById('saveButton');
+            if (saveButton) {
+                saveButton.addEventListener('click', saveResultAsImage);
+            }
         });
     </script>
 </body>
