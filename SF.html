@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHÂN TÍCH CHỈ SỐ SMARTFIT KIỂM SOÁT CÂN NẶNG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #9ca3af;
+        }
+        .bg-custom-green-500 {
+            background-color: #38b431;
+        }
+        .text-custom-green-500 {
+            color: #38b431;
+        }
+        .text-alarming {
+            color: #ef4444; /* Tailwind's red-500 */
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans antialiased text-gray-800">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-8 space-y-8 border border-gray-200">
+        <!-- Title -->
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-gray-900 tracking-tight">
+                PHÂN TÍCH CHỈ SỐ SMARTFIT KIỂM SOÁT CÂN NẶNG
+            </h1>
+            <p class="mt-2 text-md text-gray-600">
+                Ứng dụng tính toán và thống kê chỉ số cơ thể & chế độ ăn
+            </p>
+        </div>
+
+        <!-- Form -->
+        <form id="analysisForm" class="space-y-6">
+            <!-- Mentee & Mentor -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên Mentee</label>
+                    <input id="menteeName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="Nguyễn Văn A">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên Mentor</label>
+                    <input id="mentorName" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="Trần Thị B">
+                </div>
+            </div>
+            
+            <!-- User Information -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tuổi</label>
+                    <input id="age" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="25">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+                    <select id="gender" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200">
+                        <option value="male">Nam</option>
+                        <option value="female">Nữ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Chiều cao (cm)</label>
+                    <input id="height" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="170">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cân nặng (kg)</label>
+                    <input id="weight" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="65">
+                </div>
+            </div>
+            
+            <!-- Body Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Chỉ số BMI</label>
+                    <input id="bmi" type="number" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="22.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">BMR (kcal)</label>
+                    <input id="bmr" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="1500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tỉ lệ mỡ (%)</label>
+                    <input id="fatPercentage" type="number" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="20.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mỡ nội tạng</label>
+                    <input id="visceralFat" type="number" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="5">
+                </div>
+            </div>
+            
+            <!-- Target and Body Age -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tỉ lệ cơ (%)</label>
+                    <input id="musclePercentage" type="number" step="0.1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="30.1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tuổi sinh học</label>
+                    <input id="bodyAge" type="number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200" placeholder="30">
+                </div>
+            </div>
+
+            <!-- Target Weight Loss -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mục tiêu giảm cân</label>
+                <select id="weightLossGoal" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition duration-200">
+                    <option value="500g">Giảm 500g/tuần</option>
+                    <option value="1000g">Giảm 1000g/tuần</option>
+                </select>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="flex justify-center">
+                <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-purple-600 text-white font-semibold rounded-md shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200">
+                    Phân tích chỉ số
+                </button>
+            </div>
+        </form>
+
+        <!-- Standard Metrics Table -->
+        <div class="mt-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-3 text-center">Bảng Chỉ số Chuẩn</h3>
+            <div class="overflow-x-auto rounded-lg shadow-md">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 text-left text-sm font-semibold text-gray-600">Chỉ số</th>
+                            <th class="py-2 px-4 text-center text-sm font-semibold text-gray-600">Nam</th>
+                            <th class="py-2 px-4 text-center text-sm font-semibold text-gray-600">Nữ Trẻ</th>
+                            <th class="py-2 px-4 text-center text-sm font-semibold text-gray-600">Nữ Lớn tuổi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 text-sm text-gray-700 font-medium">BMI</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">22</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">20</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">22</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 text-sm text-gray-700 font-medium">Tỉ lệ mỡ (%)</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">17</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">22</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">24</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 text-sm text-gray-700 font-medium">Mỡ Nội tạng</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">6</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">4</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">6</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-3 px-4 text-sm text-gray-700 font-medium">Tỉ lệ cơ (%)</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">37</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">28</td>
+                            <td class="py-3 px-4 text-center text-sm text-custom-green-500 font-bold">28</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Results Display -->
+        <div id="resultsContainer" class="space-y-6 hidden">
+            <hr class="border-gray-300"/>
+            
+            <!-- Overall Results Table -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 text-center">Kết quả Phân tích</h2>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chỉ số</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Giá trị</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">So với chuẩn</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Mentee & Mentor -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tên Mentee</td>
+                            <td id="menteeResult" colspan="2" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tên Mentor</td>
+                            <td id="mentorResult" colspan="2" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <!-- BMI -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BMI</td>
+                            <td id="bmiResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                            <td id="bmiDiffResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <!-- BMR -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BMR (kcal)</td>
+                            <td id="bmrResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">N/A</td>
+                        </tr>
+                        <!-- Tỉ lệ mỡ -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tỉ lệ mỡ (%)</td>
+                            <td id="fatResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                            <td id="fatDiffResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <!-- Mỡ nội tạng -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Mỡ nội tạng</td>
+                            <td id="visceralFatResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                            <td id="visceralFatDiffResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <!-- Tỉ lệ cơ -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tỉ lệ cơ (%)</td>
+                            <td id="muscleResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                            <td id="muscleDiffResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <!-- Tuổi sinh học -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Tuổi sinh học</td>
+                            <td id="bodyAgeResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                            <td id="bodyAgeDiffResult" class="px-6 py-4 whitespace-nowrap text-sm text-center">N/A</td>
+                        </tr>
+                        <!-- Mục tiêu cân nặng -->
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">Mục tiêu cân nặng</td>
+                            <td colspan="2" id="weightChangeResult" class="px-6 py-4 whitespace-nowrap text-sm text-center font-bold">N/A</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Nutrition Plan -->
+            <div id="nutritionPlanContainer" class="bg-gray-50 p-6 rounded-lg shadow-inner border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 text-center">Kế hoạch Dinh dưỡng</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-md shadow-sm">
+                        <span class="font-semibold text-gray-700">Tổng Protein cần nạp (g)</span>
+                        <span id="totalProteinGramsResult" class="text-lg font-bold text-purple-600">N/A</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-white p-4 rounded-md shadow-sm">
+                        <span class="font-semibold text-gray-700">Tổng Calo mục tiêu (kcal)</span>
+                        <span id="dailyKcalGoalResult" class="text-lg font-bold text-purple-600">N/A</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-white p-4 rounded-md shadow-sm">
+                        <span class="font-semibold text-gray-700">Calo cho bữa trưa</span>
+                        <span id="lunchKcalResult" class="text-lg font-bold text-purple-600">N/A</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-white p-4 rounded-md shadow-sm">
+                        <span class="font-semibold text-gray-700">Protein cho bữa trưa (muỗng)</span>
+                        <span id="lunchProteinScoopsResult" class="text-lg font-bold text-purple-600">N/A</span>
+                    </div>
+                </div>
+                <p class="mt-4 text-center text-sm text-gray-600 italic">
+                    (Phần calo còn thiếu cho bữa trưa sẽ được bổ sung từ thực phẩm hấp, luộc hoặc tươi sống.)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('analysisForm');
+            const resultsContainer = document.getElementById('resultsContainer');
+
+            // Standard metrics from the user's provided data
+            const standardMetrics = {
+                male: { bmi: 22, fat: 17, visceralFat: 6, muscle: 37 },
+                female: { bmi: 20, fat: 22, visceralFat: 4, muscle: 28 },
+                femaleOld: { bmi: 22, fat: 24, visceralFat: 6, muscle: 28 }
+            };
+
+            const upArrowIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>`;
+            const downArrowIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>`;
+            const alarmingIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+
+            const formatDiff = (value, unit, isMuscle = false, isAlarming = false) => {
+                if (isNaN(value)) return 'N/A';
+                if (value === 0) return `<span class="text-gray-500">Đạt chuẩn</span>`;
+
+                const absValue = Math.abs(value).toFixed(1);
+                let text, colorClass, icon;
+
+                if (isAlarming) {
+                    text = `Cần giảm ${absValue}${unit}`;
+                    colorClass = 'text-red-500';
+                    icon = alarmingIcon;
+                } else if (isMuscle) {
+                    if (value < 0) {
+                        text = `Cần tăng ${absValue}${unit}`;
+                        colorClass = 'text-green-600';
+                        icon = upArrowIcon;
+                    } else {
+                        text = `Cần giảm ${absValue}${unit}`;
+                        colorClass = 'text-red-600';
+                        icon = downArrowIcon;
+                    }
+                } else {
+                    if (value > 0) {
+                        text = `Cần giảm ${absValue}${unit}`;
+                        colorClass = 'text-red-600';
+                        icon = downArrowIcon;
+                    } else {
+                        text = `Cần tăng ${absValue}${unit}`;
+                        colorClass = 'text-green-600';
+                        icon = upArrowIcon;
+                    }
+                }
+                
+                return `<span class="font-semibold flex items-center justify-center sm:justify-end ${colorClass}">${text} ${icon}</span>`;
+            };
+            
+            const formatBodyAge = (diff) => {
+                if (isNaN(diff)) return 'N/A';
+                if (diff <= 0) return `<span class="text-green-600 font-semibold">Đạt chuẩn</span>`;
+                
+                return `<span class="text-red-600 font-semibold flex items-center justify-center sm:justify-end">Cần giảm ${diff} tuổi ${downArrowIcon}</span>`;
+            };
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                // Get form values
+                const age = parseFloat(document.getElementById('age').value);
+                const gender = document.getElementById('gender').value;
+                const height = parseFloat(document.getElementById('height').value);
+                const weight = parseFloat(document.getElementById('weight').value);
+                const bmiInput = parseFloat(document.getElementById('bmi').value);
+                const bmrInput = parseFloat(document.getElementById('bmr').value);
+                const fatPercentage = parseFloat(document.getElementById('fatPercentage').value);
+                const visceralFat = parseFloat(document.getElementById('visceralFat').value);
+                const musclePercentage = parseFloat(document.getElementById('musclePercentage').value);
+                const bodyAge = parseFloat(document.getElementById('bodyAge').value);
+                const weightLossGoal = document.getElementById('weightLossGoal').value;
+                const menteeName = document.getElementById('menteeName').value;
+                const mentorName = document.getElementById('mentorName').value;
+
+                // Determine standard metrics
+                let standards = standardMetrics.male;
+                if (gender === 'female') {
+                    standards = age >= 40 ? standardMetrics.femaleOld : standardMetrics.female;
+                }
+
+                // Check for alarming values
+                const isFatAlarming = (gender === 'male' && fatPercentage > 25) || (gender === 'female' && fatPercentage > 30);
+                const isVisceralFatAlarming = visceralFat > 10;
+                const isBmiAlarming = bmiInput > 25;
+
+                // Calculations
+                const heightInMeters = height / 100;
+                const targetWeight = standards.bmi * heightInMeters * heightInMeters;
+                const weightChange = (weight - targetWeight);
+
+                const bmiDiff = bmiInput - standards.bmi;
+                const fatDiff = fatPercentage - standards.fat;
+                const visceralFatDiff = visceralFat - standards.visceralFat;
+                const muscleDiff = standards.muscle - musclePercentage;
+                const bodyAgeDiff = bodyAge - age;
+
+                // Nutrition and Protein Calculations
+                const proteinPerScoop = 8;
+                const proteinKcalPerScoop = 40;
+                const bodykeyProteinPerPacket = 17;
+                const bodykeyKcalPerPacket = 205;
+
+                const totalProteinGrams = (weight * 1.2);
+                const totalProteinScoops = (totalProteinGrams / proteinPerScoop);
+
+                let dailyKcalGoal;
+                if (weightLossGoal === '500g') {
+                    dailyKcalGoal = (bmrInput + 200);
+                } else if (weightLossGoal === '1000g') {
+                    dailyKcalGoal = (bmrInput - 300);
+                }
+                
+                const breakfastKcal = bodykeyKcalPerPacket + (2 * proteinKcalPerScoop);
+                const dinnerKcal = bodykeyKcalPerPacket + (2 * proteinKcalPerScoop);
+                
+                const lunchProteinGrams = totalProteinGrams - (2 * bodykeyProteinPerPacket);
+                const lunchProteinScoops = (lunchProteinGrams / proteinPerScoop);
+                const lunchProteinKcal = lunchProteinScoops * proteinKcalPerScoop;
+                
+                const lunchKcalFromFood = dailyKcalGoal - breakfastKcal - dinnerKcal - lunchProteinKcal;
+
+                // Display results
+                document.getElementById('menteeResult').textContent = menteeName;
+                document.getElementById('mentorResult').textContent = mentorName;
+                document.getElementById('bmiResult').textContent = isNaN(bmiInput) ? 'N/A' : bmiInput.toFixed(1);
+                document.getElementById('bmiDiffResult').innerHTML = formatDiff(bmiDiff, '', false, isBmiAlarming);
+                
+                document.getElementById('bmrResult').textContent = isNaN(bmrInput) ? 'N/A' : bmrInput.toFixed(0);
+
+                document.getElementById('fatResult').textContent = isNaN(fatPercentage) ? 'N/A' : `${fatPercentage.toFixed(1)}%`;
+                document.getElementById('fatDiffResult').innerHTML = formatDiff(fatDiff, '%', false, isFatAlarming);
+                
+                document.getElementById('visceralFatResult').textContent = isNaN(visceralFat) ? 'N/A' : visceralFat.toFixed(1);
+                document.getElementById('visceralFatDiffResult').innerHTML = formatDiff(visceralFatDiff, '', false, isVisceralFatAlarming);
+                
+                document.getElementById('muscleResult').textContent = isNaN(musclePercentage) ? 'N/A' : `${musclePercentage.toFixed(1)}%`;
+                document.getElementById('muscleDiffResult').innerHTML = formatDiff(muscleDiff, '%', true);
+                
+                document.getElementById('bodyAgeResult').textContent = isNaN(bodyAge) ? 'N/A' : bodyAge.toFixed(0);
+                document.getElementById('bodyAgeDiffResult').innerHTML = formatBodyAge(bodyAgeDiff);
+                
+                document.getElementById('weightChangeResult').innerHTML = isNaN(weightChange) ? 'N/A' : (weightChange > 0 ? `<span class="font-semibold flex items-center justify-center sm:justify-end text-red-500">Cần giảm ${Math.abs(weightChange).toFixed(1)} kg ${downArrowIcon}</span>` : weightChange < 0 ? `<span class="font-semibold flex items-center justify-center sm:justify-end text-green-600">Cần tăng ${Math.abs(weightChange).toFixed(1)} kg ${upArrowIcon}</span>` : `<span class="text-gray-500">Đã đạt mục tiêu</span>`);
+
+                // Display nutrition plan results
+                document.getElementById('totalProteinGramsResult').textContent = isNaN(totalProteinGrams) ? 'N/A' : `${totalProteinGrams.toFixed(1)}g (~${totalProteinScoops.toFixed(1)} muỗng)`;
+                document.getElementById('dailyKcalGoalResult').textContent = isNaN(dailyKcalGoal) ? 'N/A' : `${dailyKcalGoal.toFixed(0)} kcal`;
+                document.getElementById('lunchKcalResult').textContent = isNaN(lunchKcalFromFood) ? 'N/A' : `${lunchKcalFromFood.toFixed(0)} kcal`;
+                document.getElementById('lunchProteinScoopsResult').textContent = isNaN(lunchProteinScoops) ? 'N/A' : `${lunchProteinScoops.toFixed(1)} muỗng`;
+
+                resultsContainer.classList.remove('hidden');
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>
